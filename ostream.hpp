@@ -10,7 +10,7 @@ template <typename T, typename U>
 std::ostream& operator<<(
     std::ostream& stream, const std::pair<T, U>& pair
 ) {
-    stream << pair.first << ' ' << pair.second << '\n';
+    stream << pair.first << ' ' << pair.second;
     return stream;
 }
 
