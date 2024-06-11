@@ -13,6 +13,28 @@
 
 namespace CppCp {
 
+namespace {
+
+template <typename T, usize... Idx>
+inline void
+read_tuple_helper(T& tuple, std::index_sequence<Idx...>) {
+    ((std::cin >> std::get<Idx>(tuple)), ...);
+}
+
+} // namespace
+
+template <
+    IStreamCompatible T,
+    IStreamCompatible U,
+    IStreamCompatibleAll... Rest>
+inline std::tuple<T, U, Rest...> read() {
+    std::tuple<T, U, Rest...> ret;
+    read_tuple_helper(
+        ret, std::index_sequence_for<T, U, Rest...>{}
+    );
+    return ret;
+}
+
 template <IStreamCompatible T> inline T read() {
     T x;
     std::cin >> x;
@@ -20,11 +42,23 @@ template <IStreamCompatible T> inline T read() {
 }
 
 template <IStreamCompatible T, usize N>
-    requires IStreamCompatible<T>
 inline std::array<T, N> read() {
     std::array<T, N> x;
     for (auto& i : x) {
-        std::cin >> i;
+        i = read<T>();
+    }
+    return x;
+}
+
+template <
+    IStreamCompatible T,
+    IStreamCompatible U,
+    IStreamCompatibleAll... Rest>
+inline std::vector<std::tuple<T, U, Rest...>> read(const usize count
+) {
+    std::vector<std::tuple<T, U, Rest...>> x(count);
+    for (auto& i : x) {
+        i = read<T, U, Rest...>();
     }
     return x;
 }
@@ -33,7 +67,7 @@ template <IStreamCompatible T>
 inline std::vector<T> read(const usize count) {
     std::vector<T> x(count);
     for (auto& i : x) {
-        std::cin >> i;
+        i = read<T>();
     }
     return x;
 }

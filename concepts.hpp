@@ -13,6 +13,11 @@ concept IStreamCompatible = requires(T& it, std::istream& stream) {
     { stream >> it } -> std::same_as<std::istream&>;
 };
 
+template <typename... T>
+concept IStreamCompatibleAll = requires {
+    requires((IStreamCompatible<T> && ...));
+};
+
 template <typename T>
 concept OStreamCompatible = requires(
     const T& it, std::ostream& stream
