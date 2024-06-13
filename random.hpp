@@ -18,7 +18,7 @@ static std::mt19937 rng32(
 );
 
 template <typename T> T rand_int(const T lo, const T hi) {
-    if constexpr (std::same_as<T, u64> || std::same_as<T, i64>) {
+    if constexpr (std::is_same<T, u64>() || std::is_same<T, i64>()) {
         return std::uniform_int_distribution<T>(lo, hi)(rng64);
     } else {
         return std::uniform_int_distribution<T>(lo, hi)(rng32);
