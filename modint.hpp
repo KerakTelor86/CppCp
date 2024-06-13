@@ -12,8 +12,13 @@ namespace {
 
 template <typename T, typename U, T MOD> class ModInt {
 public:
+#if __cplusplus >= 202002L
     constexpr ModInt() : rep(0) {}
     constexpr ModInt(const T value) : rep(value) {}
+#else
+    ModInt() : rep(0) {}
+    ModInt(const T value) : rep(value) {}
+#endif
 
     ModInt& operator+=(const ModInt& other) {
         rep = (rep + other.rep) % MOD;
@@ -77,24 +82,30 @@ public:
 #endif
     }
 
+#if __cplusplus >= 202002L
     std::strong_ordering operator<=>(const ModInt& other) const {
         return rep <=> other.rep;
     }
+#else
+    bool operator<(const ModInt& other) const {
+        return rep < other.rep;
+    }
+
+    bool operator>(const ModInt& other) const {
+        return rep > other.rep;
+    }
+#endif
 
     bool operator==(const ModInt& other) const {
         return rep == other.rep;
     }
 
-    friend std::istream& operator>>(
-        std::istream& stream, ModInt& value
-    ) {
+    friend std::istream& operator>>(std::istream& stream, ModInt& value) {
         stream >> value.rep;
         return stream;
     }
 
-    friend std::ostream& operator<<(
-        std::ostream& stream, const ModInt& value
-    ) {
+    friend std::ostream& operator<<(std::ostream& stream, const ModInt& value) {
         stream << value.rep;
         return stream;
     }
@@ -109,8 +120,7 @@ private:
 
 #ifdef ENABLE_MODINT_INV_CACHE
 template <typename T, typename U, T MOD>
-UnorderedMap<T, T>
-    ModInt<T, U, MOD>::inv_cache = UnorderedMap<T, T>();
+UnorderedMap<T, T> ModInt<T, U, MOD>::inv_cache = UnorderedMap<T, T>();
 #endif
 } // namespace
 

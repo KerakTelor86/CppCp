@@ -16,32 +16,42 @@ namespace CppCp {
 namespace {
 
 template <typename T, usize... Idx>
-inline void
-read_tuple_helper(T& tuple, std::index_sequence<Idx...>) {
+inline void read_tuple_helper(T& tuple, std::index_sequence<Idx...>) {
     ((std::cin >> std::get<Idx>(tuple)), ...);
 }
 
 } // namespace
 
+#if __cplusplus >= 202002L
 template <
     IStreamCompatible T,
     IStreamCompatible U,
     IStreamCompatibleAll... Rest>
+#else
+template <typename T, typename U, typename... Rest>
+#endif
 inline std::tuple<T, U, Rest...> read() {
     std::tuple<T, U, Rest...> ret;
-    read_tuple_helper(
-        ret, std::index_sequence_for<T, U, Rest...>{}
-    );
+    read_tuple_helper(ret, std::index_sequence_for<T, U, Rest...>{});
     return ret;
 }
 
-template <IStreamCompatible T> inline T read() {
+#if __cplusplus >= 202002L
+template <IStreamCompatible T>
+#else
+template <typename T>
+#endif
+inline T read() {
     T x;
     std::cin >> x;
     return x;
 }
 
+#if __cplusplus >= 202002L
 template <IStreamCompatible T, usize N>
+#else
+template <typename T, usize N>
+#endif
 inline std::array<T, N> read() {
     std::array<T, N> x;
     for (auto& i : x) {
@@ -50,12 +60,15 @@ inline std::array<T, N> read() {
     return x;
 }
 
+#if __cplusplus >= 202002L
 template <
     IStreamCompatible T,
     IStreamCompatible U,
     IStreamCompatibleAll... Rest>
-inline std::vector<std::tuple<T, U, Rest...>> read(const usize count
-) {
+#else
+template <typename T, typename U, typename... Rest>
+#endif
+inline std::vector<std::tuple<T, U, Rest...>> read(const usize count) {
     std::vector<std::tuple<T, U, Rest...>> x(count);
     for (auto& i : x) {
         i = read<T, U, Rest...>();
@@ -63,7 +76,11 @@ inline std::vector<std::tuple<T, U, Rest...>> read(const usize count
     return x;
 }
 
+#if __cplusplus >= 202002L
 template <IStreamCompatible T>
+#else
+template <typename T>
+#endif
 inline std::vector<T> read(const usize count) {
     std::vector<T> x(count);
     for (auto& i : x) {
@@ -80,7 +97,11 @@ inline string read_line() {
     return x;
 }
 
+#if __cplusplus >= 202002L
 template <bool add_space = true, OStreamCompatibleAll... T>
+#else
+template <bool add_space = true, typename... T>
+#endif
 inline void write(T... args) {
     if constexpr (add_space) {
         bool first = true;
@@ -97,7 +118,11 @@ inline void write(T... args) {
     }
 }
 
+#if __cplusplus >= 202002L
 template <bool add_space = true, OStreamCompatibleAll... T>
+#else
+template <bool add_space = true, typename... T>
+#endif
 inline void write_line(T... args) {
     write<add_space>(args...);
     write('\n');

@@ -18,13 +18,14 @@ struct UnorderedHash {
     }
 
     usize operator()(const u64 x) const {
-        static const u64
-            FIXED_RANDOM = std::chrono::steady_clock::now()
-                               .time_since_epoch()
-                               .count();
+        static const u64 FIXED_RANDOM = std::chrono::steady_clock::now()
+                                            .time_since_epoch()
+                                            .count();
         return splitmix64(x + FIXED_RANDOM);
     }
 };
+
+#if __cplusplus >= 202002L
 
 template <typename K>
 concept UnorderedHashable = requires(
@@ -38,6 +39,14 @@ using UnorderedMap = std::unordered_map<K, V, UnorderedHash>;
 
 template <UnorderedHashable K>
 using UnorderedSet = std::unordered_set<K, UnorderedHash>;
+
+#else
+
+template <typename K, typename V>
+using UnorderedMap = std::unordered_map<K, V, UnorderedHash>;
+
+template <typename K> using UnorderedSet = std::unordered_set<K, UnorderedHash>;
+#endif
 
 }; // namespace CppCp
 

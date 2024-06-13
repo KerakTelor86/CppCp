@@ -22,8 +22,7 @@ void unzip_helper(T& vec_tuple, const U& row, std::index_sequence<Idx...>) {
 
 } // namespace
 
-template <typename... T>
-auto unzip(const std::vector<std::tuple<T...>>& vec) {
+template <typename... T> auto unzip(const std::vector<std::tuple<T...>>& vec) {
     std::tuple<std::vector<T>...> ret;
 
     reserve_helper(ret, size(vec), std::index_sequence_for<T...>{});

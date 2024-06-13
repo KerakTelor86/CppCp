@@ -29,8 +29,7 @@ template <typename T> T rand_range(const T size) {
     return rand_int<T>(0, size - 1);
 }
 
-template <typename T>
-T rand_choice(const std::vector<T>& elements) {
+template <typename T> T rand_choice(const std::vector<T>& elements) {
     return elements[rand_range(std::size(elements))];
 }
 
@@ -40,9 +39,7 @@ T rand_choice(const std::array<T, Size>& elements) {
 }
 
 template <typename T>
-std::vector<T> rand_choices(
-    const std::vector<T>& elements, const usize count
-) {
+std::vector<T> rand_choices(const std::vector<T>& elements, const usize count) {
     std::vector<T> res(std::begin(elements), std::end(elements));
     std::shuffle(std::begin(res), std::end(res), rng32);
     res.resize(count);

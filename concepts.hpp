@@ -1,11 +1,14 @@
 #ifndef CPPCP_CONCEPTS
 #define CPPCP_CONCEPTS
 
+#if __cplusplus >= 202002L
 #include <concepts>
+#endif
 
 #include "ostream.hpp"
 #include "types.hpp"
 
+#if __cplusplus >= 202002L
 namespace CppCp {
 
 template <typename T>
@@ -19,9 +22,7 @@ concept IStreamCompatibleAll = requires {
 };
 
 template <typename T>
-concept OStreamCompatible = requires(
-    const T& it, std::ostream& stream
-) {
+concept OStreamCompatible = requires(const T& it, std::ostream& stream) {
     { stream << it } -> std::same_as<std::ostream&>;
 };
 
@@ -31,19 +32,16 @@ concept OStreamCompatibleAll = requires {
 };
 
 template <typename T>
-concept IndexableContainer = requires(
-    const T& container, usize idx
-) {
+concept IndexableContainer = requires(const T& container, usize idx) {
     { container[idx] };
 };
 
 template <typename V, typename T>
-concept IndexableContainerOf = requires(
-    const V& container, usize idx
-) {
+concept IndexableContainerOf = requires(const V& container, usize idx) {
     { container[idx] } -> std::same_as<T>;
 };
 
 } // namespace CppCp
+#endif
 
 #endif

@@ -2,7 +2,9 @@
 #define CPPCP_COMPRESS
 
 #include <algorithm>
+#if __cplusplus >= 202002L
 #include <concepts>
+#endif
 #include <cstdarg>
 #include <initializer_list>
 #include <iterator>
@@ -54,17 +56,28 @@ private:
     Store store;
 };
 
+#if __cplusplus >= 202002L
 template <std::totally_ordered T>
+#else
+template <typename T>
+#endif
 using MapCompressor = LiveCompressor<T, std::map<T, usize>>;
 
+#if __cplusplus >= 202002L
 template <UnorderedHashable T>
-using UnorderedMapCompressor = LiveCompressor<
-    T,
-    UnorderedMap<T, usize>>;
+#else
+template <typename T>
+#endif
+using UnorderedMapCompressor = LiveCompressor<T, UnorderedMap<T, usize>>;
 
 template <typename T> class FinalizedCompressor;
 
-template <std::totally_ordered T> class DeferredCompressor {
+#if __cplusplus >= 202002L
+template <std::totally_ordered T>
+#else
+template <typename T>
+#endif
+class DeferredCompressor {
 public:
     DeferredCompressor() {}
     DeferredCompressor(std::initializer_list<std::vector<T>> init) {
@@ -75,9 +88,7 @@ public:
         store.reserve(total_size);
 
         for (const auto& i : init) {
-            store.insert(
-                std::end(store), std::begin(i), std::end(i)
-            );
+            store.insert(std::end(store), std::begin(i), std::end(i));
         }
     }
 
@@ -93,13 +104,9 @@ public:
 
     FinalizedCompressor<T> finalize() const {
         auto sorted_unique = store;
-        std::sort(
-            std::begin(sorted_unique), std::end(sorted_unique)
-        );
+        std::sort(std::begin(sorted_unique), std::end(sorted_unique));
         sorted_unique.erase(
-            std::unique(
-                std::begin(sorted_unique), std::end(sorted_unique)
-            ),
+            std::unique(std::begin(sorted_unique), std::end(sorted_unique)),
             std::end(sorted_unique)
         );
         return FinalizedCompressor(std::move(sorted_unique));

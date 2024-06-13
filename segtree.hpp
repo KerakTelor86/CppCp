@@ -2,7 +2,9 @@
 #define CPPCP_SEGTREE
 
 #include <array>
+#if __cplusplus >= 202002L
 #include <concepts>
+#endif
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -16,9 +18,7 @@ namespace CppCp {
 #define CPPCP_SEGTREE_HELPER
 namespace {
 
-inline std::tuple<i32, i32, i32> compute_indices(
-    i32 idx, i32 l, i32 r
-) {
+inline std::tuple<i32, i32, i32> compute_indices(i32 idx, i32 l, i32 r) {
     i32 m = l + (r - l) / 2;
     i32 lc = idx + 1;
     i32 rc = idx + (m - l + 1) * 2;
@@ -28,8 +28,10 @@ inline std::tuple<i32, i32, i32> compute_indices(
 #endif
 
 template <typename Val, typename Op = std::plus<>>
+#if __cplusplus >= 202002L
     requires std::is_invocable_r_v<Val, Op, Val, Val>
              && std::assignable_from<Val&, Val>
+#endif
 class SegTree {
 public:
     SegTree(const usize size, const Val& nil_value = Val())
@@ -38,12 +40,18 @@ public:
           len(size) {}
 
     template <typename T>
+#if __cplusplus >= 202002L
         requires IndexableContainer<T>
                      && std::assignable_from<Val&, decltype(T()[0])>
+#endif
     SegTree(const T& source, const Val& nil_value = Val())
         : store(2 * std::size(source)),
           nil(nil_value),
+#if __cplusplus >= 202002L
           len(std::ssize(source)) {
+#else
+          len(std::size(source)) {
+#endif
         build(source, 0, 0, len - 1);
     }
 
@@ -70,11 +78,11 @@ private:
     static constexpr auto op = Op();
 
     template <typename T>
+#if __cplusplus >= 202002L
         requires IndexableContainer<T>
                  && std::assignable_from<Val&, decltype(T()[0])>
-    void build(
-        const T& source, const i32 idx, const i32 l, const i32 r
-    ) {
+#endif
+    void build(const T& source, const i32 idx, const i32 l, const i32 r) {
         if (l == r) {
             store[idx] = source[l];
             return;
@@ -87,11 +95,7 @@ private:
 
     template <bool replace>
     void mutate(
-        const i32 u,
-        const Val& w,
-        const i32 idx,
-        const i32 l,
-        const i32 r
+        const i32 u, const Val& w, const i32 idx, const i32 l, const i32 r
     ) {
         if (u > r || u < l) {
             return;
@@ -113,13 +117,8 @@ private:
         store[idx] = op(store[lc], store[rc]);
     }
 
-    Val query(
-        const i32 u,
-        const i32 v,
-        const i32 idx,
-        const i32 l,
-        const i32 r
-    ) const {
+    Val query(const i32 u, const i32 v, const i32 idx, const i32 l, const i32 r)
+        const {
         if (u > r || v < l) {
             return nil;
         }
@@ -132,8 +131,10 @@ private:
 };
 
 template <typename Val, usize Size, typename Op = std::plus<>>
+#if __cplusplus >= 202002L
     requires std::is_invocable_r_v<Val, Op, Val, Val>
              && std::assignable_from<Val&, Val>
+#endif
 class StaticSegTree {
 public:
     StaticSegTree(const Val& nil_value = Val()) : nil(nil_value) {
@@ -141,8 +142,10 @@ public:
     }
 
     template <typename T>
+#if __cplusplus >= 202002L
         requires IndexableContainer<T>
                  && std::assignable_from<Val&, decltype(T()[0])>
+#endif
     StaticSegTree(const T& source, const Val& nil_value = Val())
         : nil(nil_value) {
         build(source, 0, 0, Size - 1);
@@ -170,11 +173,11 @@ private:
     static constexpr auto op = Op();
 
     template <typename T>
+#if __cplusplus >= 202002L
         requires IndexableContainer<T>
                  && std::assignable_from<Val&, decltype(T()[0])>
-    void build(
-        const T& source, const i32 idx, const i32 l, const i32 r
-    ) {
+#endif
+    void build(const T& source, const i32 idx, const i32 l, const i32 r) {
         if (l == r) {
             store[idx] = source[l];
             return;
@@ -187,11 +190,7 @@ private:
 
     template <bool replace>
     void mutate(
-        const i32 u,
-        const Val& w,
-        const i32 idx,
-        const i32 l,
-        const i32 r
+        const i32 u, const Val& w, const i32 idx, const i32 l, const i32 r
     ) {
         if (u > r || u < l) {
             return;
@@ -213,13 +212,8 @@ private:
         store[idx] = op(store[lc], store[rc]);
     }
 
-    Val query(
-        const i32 u,
-        const i32 v,
-        const i32 idx,
-        const i32 l,
-        const i32 r
-    ) const {
+    Val query(const i32 u, const i32 v, const i32 idx, const i32 l, const i32 r)
+        const {
         if (u > r || v < l) {
             return nil;
         }

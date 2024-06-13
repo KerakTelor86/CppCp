@@ -1,6 +1,7 @@
 #ifndef CPPCP_ALL
 #define CPPCP_ALL
 
+#include "compat.hpp"
 #include "compress.hpp"
 #include "concepts.hpp"
 #include "debug.hpp"

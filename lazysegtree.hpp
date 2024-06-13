@@ -2,7 +2,9 @@
 #define CPPCP_LAZYSEGTREE
 
 #include <array>
+#if __cplusplus >= 202002L
 #include <concepts>
+#endif
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -16,9 +18,7 @@ namespace CppCp {
 #define CPPCP_SEGTREE_HELPER
 namespace {
 
-inline std::tuple<i32, i32, i32> compute_indices(
-    i32 idx, i32 l, i32 r
-) {
+inline std::tuple<i32, i32, i32> compute_indices(i32 idx, i32 l, i32 r) {
     i32 m = l + (r - l) / 2;
     i32 lc = idx + 1;
     i32 rc = idx + (m - l + 1) * 2;
@@ -34,13 +34,14 @@ template <
     typename Apply,
     typename ValOp = std::plus<>,
     typename LazyOp = std::plus<>>
+#if __cplusplus >= 202002L
     requires std::is_invocable_r_v<Val, ValOp, Val, Val>
              && std::assignable_from<Val&, Val>
              && std::is_invocable_r_v<Lazy, LazyOp, Lazy, Lazy>
              && std::assignable_from<Lazy&, Lazy>
              && std::equality_comparable<Lazy>
-             && std::
-                 is_invocable_r_v<Val, Apply, Val, Lazy, i32, i32>
+             && std::is_invocable_r_v<Val, Apply, Val, Lazy, i32, i32>
+#endif
 class LazySegTree {
 public:
     LazySegTree(
@@ -55,8 +56,10 @@ public:
           len(size) {}
 
     template <typename T>
+#if __cplusplus >= 202002L
         requires IndexableContainer<T>
                      && std::assignable_from<Val&, decltype(T()[0])>
+#endif
     LazySegTree(
         const T& source,
         const Val& nil_value = Val(),
@@ -66,7 +69,11 @@ public:
           lazy_store(2 * std::size(source), nil_lazy),
           val_nil(nil_value),
           lazy_nil(nil_lazy),
+#if __cplusplus >= 202002L
           len(std::ssize(source)) {
+#else
+          len(std::size(source)) {
+#endif
         build(source, 0, 0, len - 1);
     }
 
@@ -97,11 +104,11 @@ private:
     static constexpr auto apply = Apply();
 
     template <typename T>
+#if __cplusplus >= 202002L
         requires IndexableContainer<T>
                  && std::assignable_from<Val&, decltype(T()[0])>
-    void build(
-        const T& source, const i32 idx, const i32 l, const i32 r
-    ) {
+#endif
+    void build(const T& source, const i32 idx, const i32 l, const i32 r) {
         if (l == r) {
             val_store[idx] = source[l];
             return;
@@ -118,25 +125,15 @@ private:
         }
         if (l != r) {
             const auto [lc, rc, m] = compute_indices(idx, l, r);
-            lazy_store[lc] = lazy_op(
-                lazy_store[lc], lazy_store[idx]
-            );
-            lazy_store[rc] = lazy_op(
-                lazy_store[rc], lazy_store[idx]
-            );
+            lazy_store[lc] = lazy_op(lazy_store[lc], lazy_store[idx]);
+            lazy_store[rc] = lazy_op(lazy_store[rc], lazy_store[idx]);
         }
-        val_store[idx] = apply(
-            val_store[idx], lazy_store[idx], l, r
-        );
+        val_store[idx] = apply(val_store[idx], lazy_store[idx], l, r);
         lazy_store[idx] = lazy_nil;
     }
 
     void set(
-        const i32 u,
-        const Val& w,
-        const i32 idx,
-        const i32 l,
-        const i32 r
+        const i32 u, const Val& w, const i32 idx, const i32 l, const i32 r
     ) {
         propagate(idx, l, r);
         if (u > r || u < l) {
@@ -175,13 +172,8 @@ private:
         val_store[idx] = val_op(val_store[lc], val_store[rc]);
     }
 
-    Val query(
-        const i32 u,
-        const i32 v,
-        const i32 idx,
-        const i32 l,
-        const i32 r
-    ) const {
+    Val query(const i32 u, const i32 v, const i32 idx, const i32 l, const i32 r)
+        const {
         propagate(idx, l, r);
         if (u > r || v < l) {
             return val_nil;
@@ -190,9 +182,7 @@ private:
             return val_store[idx];
         }
         auto [lc, rc, m] = compute_indices(idx, l, r);
-        return val_op(
-            query(u, v, lc, l, m), query(u, v, rc, m + 1, r)
-        );
+        return val_op(query(u, v, lc, l, m), query(u, v, rc, m + 1, r));
     }
 };
 
@@ -203,13 +193,14 @@ template <
     typename Apply,
     typename ValOp = std::plus<>,
     typename LazyOp = std::plus<>>
+#if __cplusplus >= 202002L
     requires std::is_invocable_r_v<Val, ValOp, Val, Val>
              && std::assignable_from<Val&, Val>
              && std::is_invocable_r_v<Lazy, LazyOp, Lazy, Lazy>
              && std::assignable_from<Lazy&, Lazy>
              && std::equality_comparable<Lazy>
-             && std::
-                 is_invocable_r_v<Val, Apply, Val, Lazy, i32, i32>
+             && std::is_invocable_r_v<Val, Apply, Val, Lazy, i32, i32>
+#endif
 class StaticLazySegTree {
 public:
     StaticLazySegTree(
@@ -217,17 +208,15 @@ public:
     )
         : val_nil(nil_value),
           lazy_nil(nil_lazy) {
-        std::fill(
-            std::begin(val_store), std::end(val_store), val_nil
-        );
-        std::fill(
-            std::begin(lazy_store), std::end(lazy_store), lazy_nil
-        );
+        std::fill(std::begin(val_store), std::end(val_store), val_nil);
+        std::fill(std::begin(lazy_store), std::end(lazy_store), lazy_nil);
     }
 
     template <typename T>
+#if __cplusplus >= 202002L
         requires IndexableContainer<T>
                      && std::assignable_from<Val&, decltype(T()[0])>
+#endif
     StaticLazySegTree(
         const T& source,
         const Val& nil_value = Val(),
@@ -236,9 +225,7 @@ public:
         : val_nil(nil_value),
           lazy_nil(nil_lazy) {
         build(source, 0, 0, Size - 1);
-        std::fill(
-            std::begin(lazy_store), std::end(lazy_store), lazy_nil
-        );
+        std::fill(std::begin(lazy_store), std::end(lazy_store), lazy_nil);
     }
 
     void set(const i32 pos, const Val& value) {
@@ -267,11 +254,11 @@ private:
     static constexpr auto apply = Apply();
 
     template <typename T>
+#if __cplusplus >= 202002L
         requires IndexableContainer<T>
                  && std::assignable_from<Val&, decltype(T()[0])>
-    void build(
-        const T& source, const i32 idx, const i32 l, const i32 r
-    ) {
+#endif
+    void build(const T& source, const i32 idx, const i32 l, const i32 r) {
         if (l == r) {
             val_store[idx] = source[l];
             return;
@@ -288,25 +275,15 @@ private:
         }
         if (l != r) {
             const auto [lc, rc, m] = compute_indices(idx, l, r);
-            lazy_store[lc] = lazy_op(
-                lazy_store[lc], lazy_store[idx]
-            );
-            lazy_store[rc] = lazy_op(
-                lazy_store[rc], lazy_store[idx]
-            );
+            lazy_store[lc] = lazy_op(lazy_store[lc], lazy_store[idx]);
+            lazy_store[rc] = lazy_op(lazy_store[rc], lazy_store[idx]);
         }
-        val_store[idx] = apply(
-            val_store[idx], lazy_store[idx], l, r
-        );
+        val_store[idx] = apply(val_store[idx], lazy_store[idx], l, r);
         lazy_store[idx] = lazy_nil;
     }
 
     void set(
-        const i32 u,
-        const Val& w,
-        const i32 idx,
-        const i32 l,
-        const i32 r
+        const i32 u, const Val& w, const i32 idx, const i32 l, const i32 r
     ) {
         propagate(idx, l, r);
         if (u > r || u < l) {
@@ -345,13 +322,8 @@ private:
         val_store[idx] = val_op(val_store[lc], val_store[rc]);
     }
 
-    Val query(
-        const i32 u,
-        const i32 v,
-        const i32 idx,
-        const i32 l,
-        const i32 r
-    ) const {
+    Val query(const i32 u, const i32 v, const i32 idx, const i32 l, const i32 r)
+        const {
         propagate(idx, l, r);
         if (u > r || v < l) {
             return val_nil;
@@ -360,9 +332,7 @@ private:
             return val_store[idx];
         }
         auto [lc, rc, m] = compute_indices(idx, l, r);
-        return val_op(
-            query(u, v, lc, l, m), query(u, v, rc, m + 1, r)
-        );
+        return val_op(query(u, v, lc, l, m), query(u, v, rc, m + 1, r));
     }
 };
 
