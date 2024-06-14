@@ -98,7 +98,9 @@ auto operator|(
     const std::vector<T>& vec, const RunningFold<Init, Func>& running_fold
 ) {
     using Ret = decltype(running_fold.func(Init(), T()));
-    std::vector<Ret> ret{running_fold.init};
+    std::vector<Ret> ret;
+    ret.reserve(std::size(vec) + 1);
+    ret.push_back(running_fold.init);
     for (const auto& i : vec) {
         ret.push_back(running_fold.func(ret.back(), i));
     }
