@@ -6,6 +6,7 @@
 #include "concepts.hpp"
 #include "debug.hpp"
 #include "dsu.hpp"
+#include "functional.hpp"
 #include "hash.hpp"
 #include "io.hpp"
 #include "lazysegtree.hpp"

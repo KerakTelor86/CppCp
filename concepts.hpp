@@ -19,9 +19,7 @@ concept IStreamCompatibleAll = requires {
 };
 
 template <typename T>
-concept OStreamCompatible = requires(
-    const T& it, std::ostream& stream
-) {
+concept OStreamCompatible = requires(const T& it, std::ostream& stream) {
     { stream << it } -> std::same_as<std::ostream&>;
 };
 
@@ -31,17 +29,22 @@ concept OStreamCompatibleAll = requires {
 };
 
 template <typename T>
-concept IndexableContainer = requires(
-    const T& container, usize idx
-) {
+concept IndexableContainer = requires(const T& container, usize idx) {
     { container[idx] };
 };
 
 template <typename V, typename T>
-concept IndexableContainerOf = requires(
-    const V& container, usize idx
-) {
+concept IndexableContainerOf = requires(const V& container, usize idx) {
     { container[idx] } -> std::same_as<T>;
+};
+template <typename Func, typename... Args>
+concept Lambda = requires(const Func& func, const Args&... args) {
+    { func(args...) };
+};
+
+template <typename Ret, typename Func, typename... Args>
+concept LambdaWithRet = requires(const Func& func, const Args&... args) {
+    { func(args...) } -> std::same_as<Ret>;
 };
 
 } // namespace CppCp
