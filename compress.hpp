@@ -3,12 +3,12 @@
 
 #include <algorithm>
 #include <concepts>
-#include <cstdarg>
 #include <initializer_list>
 #include <iterator>
 #include <map>
 #include <vector>
 
+#include "debug.hpp"
 #include "types.hpp"
 #include "unordered.hpp"
 
@@ -29,7 +29,9 @@ public:
     }
 
     usize compress(const T& val) const {
-        return store.find(val)->second;
+        const auto it = store.find(val);
+        debug_assert(it != std::end(store), "trying to compress unseen value");
+        return it->second;
     }
 
     std::vector<usize> compress(const std::vector<T>& vals) const {
@@ -58,9 +60,7 @@ template <std::totally_ordered T>
 using MapCompressor = LiveCompressor<T, std::map<T, usize>>;
 
 template <UnorderedHashable T>
-using UnorderedMapCompressor = LiveCompressor<
-    T,
-    UnorderedMap<T, usize>>;
+using UnorderedMapCompressor = LiveCompressor<T, UnorderedMap<T, usize>>;
 
 template <typename T> class FinalizedCompressor;
 
@@ -75,9 +75,7 @@ public:
         store.reserve(total_size);
 
         for (const auto& i : init) {
-            store.insert(
-                std::end(store), std::begin(i), std::end(i)
-            );
+            store.insert(std::end(store), std::begin(i), std::end(i));
         }
     }
 
@@ -93,13 +91,9 @@ public:
 
     FinalizedCompressor<T> finalize() const {
         auto sorted_unique = store;
-        std::sort(
-            std::begin(sorted_unique), std::end(sorted_unique)
-        );
+        std::sort(std::begin(sorted_unique), std::end(sorted_unique));
         sorted_unique.erase(
-            std::unique(
-                std::begin(sorted_unique), std::end(sorted_unique)
-            ),
+            std::unique(std::begin(sorted_unique), std::end(sorted_unique)),
             std::end(sorted_unique)
         );
         return FinalizedCompressor(std::move(sorted_unique));
@@ -117,6 +111,7 @@ public:
         const auto pos = std::lower_bound(
             std::begin(store), std::end(store), val
         );
+        debug_assert(*pos == val, "trying to compress unseen value");
         return pos - std::begin(store);
     }
 

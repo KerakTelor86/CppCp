@@ -4,6 +4,7 @@
 #include <numeric>
 #include <vector>
 
+#include "debug.hpp"
 #include "types.hpp"
 
 namespace CppCp {
@@ -15,6 +16,9 @@ public:
     }
 
     i32 get_root(const i32 x) const {
+        debug_assert(
+            0 <= x && x < std::ssize(*this), "trying to get root of invalid x"
+        );
         if (parent[x] == x) {
             return x;
         }
@@ -22,6 +26,9 @@ public:
     }
 
     void make_root(const i32 x) {
+        debug_assert(
+            0 <= x && x < std::ssize(*this), "trying to make root invalid x"
+        );
         const i32 y = get_root(x);
         if (x == y) {
             return;
@@ -32,10 +39,19 @@ public:
     }
 
     i32 get_count(const i32 x) const {
+        debug_assert(
+            0 <= x && x < std::ssize(*this), "trying to get count of invalid x"
+        );
         return counts[x];
     }
 
     void join(const i32 x, const i32 y) {
+        debug_assert(
+            0 <= x && x < std::ssize(*this), "trying to join invalid x"
+        );
+        debug_assert(
+            0 <= y && y < std::ssize(*this), "trying to join invalid y"
+        );
         i32 a = get_root(x), b = get_root(y);
         if (a == b) {
             return;

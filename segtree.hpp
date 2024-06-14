@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "concepts.hpp"
+#include "debug.hpp"
 #include "types.hpp"
 
 namespace CppCp {
@@ -16,14 +17,13 @@ namespace CppCp {
 #define CPPCP_SEGTREE_HELPER
 namespace {
 
-inline std::tuple<i32, i32, i32> compute_indices(
-    i32 idx, i32 l, i32 r
-) {
+inline std::tuple<i32, i32, i32> compute_indices(i32 idx, i32 l, i32 r) {
     i32 m = l + (r - l) / 2;
     i32 lc = idx + 1;
     i32 rc = idx + (m - l + 1) * 2;
     return {lc, rc, m};
 }
+
 } // namespace
 #endif
 
@@ -48,14 +48,21 @@ public:
     }
 
     void set(const i32 pos, const Val& value) {
+        debug_assert(0 <= pos && pos < ssize(*this), "pos is invalid");
         mutate<true>(pos, value, 0, 0, len - 1);
     }
 
     void update(const i32 pos, const Val& value) {
+        debug_assert(0 <= pos && pos < ssize(*this), "pos is invalid");
         mutate<false>(pos, value, 0, 0, len - 1);
     }
 
     Val query(const i32 left, const i32 right) const {
+        debug_assert(0 <= left && left < ssize(*this), "left pos is invalid");
+        debug_assert(
+            0 <= right && right < ssize(*this), "right pos is invalid"
+        );
+        debug_assert(left <= right, "left pos is > right pos");
         return query(left, right, 0, 0, len - 1);
     }
 
@@ -72,9 +79,7 @@ private:
     template <typename T>
         requires IndexableContainer<T>
                  && std::assignable_from<Val&, decltype(T()[0])>
-    void build(
-        const T& source, const i32 idx, const i32 l, const i32 r
-    ) {
+    void build(const T& source, const i32 idx, const i32 l, const i32 r) {
         if (l == r) {
             store[idx] = source[l];
             return;
@@ -87,11 +92,7 @@ private:
 
     template <bool replace>
     void mutate(
-        const i32 u,
-        const Val& w,
-        const i32 idx,
-        const i32 l,
-        const i32 r
+        const i32 u, const Val& w, const i32 idx, const i32 l, const i32 r
     ) {
         if (u > r || u < l) {
             return;
@@ -113,13 +114,8 @@ private:
         store[idx] = op(store[lc], store[rc]);
     }
 
-    Val query(
-        const i32 u,
-        const i32 v,
-        const i32 idx,
-        const i32 l,
-        const i32 r
-    ) const {
+    Val query(const i32 u, const i32 v, const i32 idx, const i32 l, const i32 r)
+        const {
         if (u > r || v < l) {
             return nil;
         }
@@ -149,14 +145,21 @@ public:
     }
 
     void set(const i32 pos, const Val& value) {
+        debug_assert(0 <= pos && pos < ssize(*this), "pos is invalid");
         mutate<true>(pos, value, 0, 0, Size - 1);
     }
 
     void update(const i32 pos, const Val& value) {
+        debug_assert(0 <= pos && pos < ssize(*this), "pos is invalid");
         mutate<false>(pos, value, 0, 0, Size - 1);
     }
 
     Val query(const i32 left, const i32 right) const {
+        debug_assert(0 <= left && left < ssize(*this), "left pos is invalid");
+        debug_assert(
+            0 <= right && right < ssize(*this), "right pos is invalid"
+        );
+        debug_assert(left <= right, "left pos is > right pos");
         return query(left, right, 0, 0, Size - 1);
     }
 
@@ -172,9 +175,7 @@ private:
     template <typename T>
         requires IndexableContainer<T>
                  && std::assignable_from<Val&, decltype(T()[0])>
-    void build(
-        const T& source, const i32 idx, const i32 l, const i32 r
-    ) {
+    void build(const T& source, const i32 idx, const i32 l, const i32 r) {
         if (l == r) {
             store[idx] = source[l];
             return;
@@ -187,11 +188,7 @@ private:
 
     template <bool replace>
     void mutate(
-        const i32 u,
-        const Val& w,
-        const i32 idx,
-        const i32 l,
-        const i32 r
+        const i32 u, const Val& w, const i32 idx, const i32 l, const i32 r
     ) {
         if (u > r || u < l) {
             return;
@@ -213,13 +210,8 @@ private:
         store[idx] = op(store[lc], store[rc]);
     }
 
-    Val query(
-        const i32 u,
-        const i32 v,
-        const i32 idx,
-        const i32 l,
-        const i32 r
-    ) const {
+    Val query(const i32 u, const i32 v, const i32 idx, const i32 l, const i32 r)
+        const {
         if (u > r || v < l) {
             return nil;
         }

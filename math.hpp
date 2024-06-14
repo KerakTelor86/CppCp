@@ -7,6 +7,7 @@
 #include <numeric>
 #include <vector>
 
+#include "debug.hpp"
 #include "random.hpp"
 #include "types.hpp"
 
@@ -24,13 +25,9 @@ inline i64 mod_pow(const i64 base, const i64 exp, const i64 mod) {
 }
 
 namespace MillerRabin {
-constexpr std::array PRIMES{
-    2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37
-};
+constexpr std::array PRIMES{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37};
 
-inline bool miller_rabin(
-    const i64 n, const i64 a, const i64 d, const i32 s
-) {
+inline bool miller_rabin(const i64 n, const i64 a, const i64 d, const i32 s) {
     i64 x = mod_pow(a, d, n);
     if (x == 1 || x == n - 1) {
         return 0;
@@ -104,8 +101,7 @@ inline void pollard_rho(const i64 n, std::vector<i64>& res) {
 
 } // namespace PollardRho
 
-template <bool sorted = true>
-inline std::vector<i64> factorize(const i64 n) {
+template <bool sorted = true> inline std::vector<i64> factorize(const i64 n) {
     std::vector<i64> res;
     PollardRho::pollard_rho(n, res);
     if constexpr (sorted) {
@@ -116,10 +112,7 @@ inline std::vector<i64> factorize(const i64 n) {
 
 template <typename ModInt> class Combinatorics {
 public:
-    Combinatorics(const i32 max_n)
-        : fact(max_n + 1),
-          inv_fact(max_n + 1) {
-
+    Combinatorics(const i32 max_n) : fact(max_n + 1), inv_fact(max_n + 1) {
         fact[0] = 1;
         for (i32 i = 1; i <= max_n; ++i) {
             fact[i] = fact[i - 1] * i;
@@ -132,10 +125,16 @@ public:
     }
 
     ModInt factorial(const i32 n) const {
+        debug_assert(
+            0 <= n && n < ssize(fact), "tried to get factorial of invalid n"
+        );
         return fact[n];
     }
 
     ModInt perm(const i32 n, const i32 k) const {
+        debug_assert(
+            0 <= n && n < ssize(fact), "tried to get perm of invalid n"
+        );
         if (k > n) {
             return 0;
         }
@@ -143,6 +142,9 @@ public:
     }
 
     ModInt comb(const i32 n, const i32 k) const {
+        debug_assert(
+            0 <= n && n < ssize(fact), "tried to get comb of invalid n"
+        );
         if (k > n) {
             return 0;
         }

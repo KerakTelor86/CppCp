@@ -16,8 +16,7 @@ namespace CppCp {
 namespace {
 
 template <typename T, usize... Idx>
-inline void
-read_tuple_helper(T& tuple, std::index_sequence<Idx...>) {
+inline void read_tuple_helper(T& tuple, std::index_sequence<Idx...>) {
     ((std::cin >> std::get<Idx>(tuple)), ...);
 }
 
@@ -29,9 +28,7 @@ template <
     IStreamCompatibleAll... Rest>
 inline std::tuple<T, U, Rest...> read() {
     std::tuple<T, U, Rest...> ret;
-    read_tuple_helper(
-        ret, std::index_sequence_for<T, U, Rest...>{}
-    );
+    read_tuple_helper(ret, std::index_sequence_for<T, U, Rest...>{});
     return ret;
 }
 
@@ -41,8 +38,7 @@ template <IStreamCompatible T> inline T read() {
     return x;
 }
 
-template <IStreamCompatible T, usize N>
-inline std::array<T, N> read() {
+template <IStreamCompatible T, usize N> inline std::array<T, N> read() {
     std::array<T, N> x;
     for (auto& i : x) {
         i = read<T>();
@@ -54,8 +50,7 @@ template <
     IStreamCompatible T,
     IStreamCompatible U,
     IStreamCompatibleAll... Rest>
-inline std::vector<std::tuple<T, U, Rest...>> read(const usize count
-) {
+inline std::vector<std::tuple<T, U, Rest...>> read(const usize count) {
     std::vector<std::tuple<T, U, Rest...>> x(count);
     for (auto& i : x) {
         i = read<T, U, Rest...>();
@@ -63,8 +58,7 @@ inline std::vector<std::tuple<T, U, Rest...>> read(const usize count
     return x;
 }
 
-template <IStreamCompatible T>
-inline std::vector<T> read(const usize count) {
+template <IStreamCompatible T> inline std::vector<T> read(const usize count) {
     std::vector<T> x(count);
     for (auto& i : x) {
         i = read<T>();
@@ -81,7 +75,7 @@ inline string read_line() {
 }
 
 template <bool add_space = true, OStreamCompatibleAll... T>
-inline void write(T... args) {
+inline void write(const T... args) {
     if constexpr (add_space) {
         bool first = true;
         const auto output_space = [&]() {
@@ -98,7 +92,7 @@ inline void write(T... args) {
 }
 
 template <bool add_space = true, OStreamCompatibleAll... T>
-inline void write_line(T... args) {
+inline void write_line(const T... args) {
     write<add_space>(args...);
     write('\n');
 }
