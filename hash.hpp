@@ -35,7 +35,7 @@ template <typename ModInt> using MulPowFunc = ModInt (*)(i64);
 
 template <typename ModInt, MulPowFunc<ModInt>... MulPow> class RollingHash {
 public:
-    RollingHash() {}
+    RollingHash() : len(0), hash{} {}
     RollingHash(const char c) : len(1) {
         std::fill(std::begin(hash), std::end(hash), c);
     }
