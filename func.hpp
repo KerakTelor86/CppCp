@@ -55,13 +55,19 @@ template <typename Func> struct Reduce {
     const Func func;
 };
 
+template <typename Func> struct RunningReduce {
+    constexpr RunningReduce(const Func& _func) : func(_func) {}
+    const Func func;
+};
+
+template <typename Tr> struct Transform {
+    constexpr Transform(const Tr& _tr) : tr(_tr) {}
+    const Tr tr;
+};
+
 template <typename Cmp> struct Sorted {
     constexpr Sorted() {}
 };
-
-struct Unique {};
-
-struct WithIndex {};
 
 struct FilterBuilder {
     constexpr auto operator()(const auto& func) const {
@@ -99,11 +105,19 @@ struct ReduceBuilder {
     }
 };
 
-struct SortedBuilder {
-    constexpr auto operator()() const {
-        return Sorted<std::less<>>();
+struct RunningReduceBuilder {
+    constexpr auto operator()(const auto& func) const {
+        return RunningReduce(func);
     }
+};
 
+struct TransformBuilder {
+    constexpr auto operator()(const auto& tr) const {
+        return Transform(tr);
+    }
+};
+
+struct SortedBuilder {
     template <typename Cmp>
     constexpr auto operator()([[maybe_unused]] const Cmp& compare) const {
         return Sorted<Cmp>();
@@ -201,6 +215,20 @@ auto operator|(const std::vector<T>& vec, const Reduce<Func>& reduce) {
     return ret;
 }
 
+template <typename T, typename Func>
+auto operator|(
+    const std::vector<T>& vec, const RunningReduce<Func>& running_reduce
+) {
+    using Ret = decltype(running_reduce.func(T(), T()));
+    std::vector<Ret> ret;
+    ret.reserve(std::size(vec));
+    ret.push_back(vec[0]);
+    for (i32 i = 1; i < ssize(vec); ++i) {
+        ret.push_back(running_reduce.func(ret.back(), vec[i]));
+    }
+    return ret;
+}
+
 template <typename T, typename Cmp>
 auto operator|(
     const std::vector<T>& vec, [[maybe_unused]] const Sorted<Cmp>& sorted
@@ -210,21 +238,11 @@ auto operator|(
     return ret;
 }
 
-template <typename T>
+template <typename T, typename Tr>
 auto operator|(
-    const std::vector<T>& vec, [[maybe_unused]] const Unique& unique
+    const std::vector<T>& vec, [[maybe_unused]] const Transform<Tr>& transform
 ) {
-    auto ret = vec;
-    std::sort(std::begin(ret), std::end(ret));
-    ret.erase(std::unique(std::begin(ret), std::end(ret)), std::end(ret));
-    return ret;
-}
-
-template <typename T>
-auto operator|(
-    const std::vector<T>& vec, [[maybe_unused]] const WithIndex& with_index
-) {
-    return zip(index_range_of(vec), vec);
+    return transform.tr(vec);
 }
 
 } // namespace Functional
@@ -232,14 +250,29 @@ auto operator|(
 inline constexpr auto filter = Functional::FilterBuilder();
 inline constexpr auto partition_by = Functional::PartitionBuilder();
 inline constexpr auto group_by = Functional::GroupByBuilder();
-inline constexpr auto fold = Functional::FoldBuilder();
-inline constexpr auto running_fold = Functional::RunningFoldBuilder();
-inline constexpr auto reduce = Functional::ReduceBuilder();
+inline constexpr auto fold_with = Functional::FoldBuilder();
+inline constexpr auto running_fold_with = Functional::RunningFoldBuilder();
+inline constexpr auto reduce_with = Functional::ReduceBuilder();
+inline constexpr auto running_reduce_with = Functional::RunningReduceBuilder();
+
 inline constexpr auto to_sorted_with = Functional::SortedBuilder();
 inline constexpr auto to_sorted_desc = to_sorted_with(std::greater<>());
-inline constexpr auto to_sorted = to_sorted_with();
-inline constexpr auto to_unique = Functional::Unique();
-inline constexpr auto with_index = Functional::WithIndex();
+inline constexpr auto to_sorted = to_sorted_with(std::less<>());
+
+inline constexpr auto transform_with = Functional::TransformBuilder();
+
+inline constexpr auto to_reversed = transform_with([](auto vec) {
+    std::reverse(std::begin(vec), std::end(vec));
+    return vec;
+});
+inline constexpr auto to_unique = transform_with([](auto vec) {
+    std::sort(std::begin(vec), std::end(vec));
+    vec.erase(std::unique(std::begin(vec), std::end(vec)), std::end(vec));
+    return vec;
+});
+inline constexpr auto with_index = transform_with([](const auto& vec) {
+    return zip(index_range_of(vec), vec);
+});
 
 template <typename T> std::vector<T> int_range(const T lo, const T hi) {
     debug_assert(lo <= hi, "cannot create an empty range");
