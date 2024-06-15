@@ -14,9 +14,6 @@
 
 namespace CppCp {
 
-template <typename R = usize, typename T>
-std::vector<R> index_range_of(const std::vector<T>& vec);
-
 namespace Functional {
 
 template <typename Func> struct Filter {
@@ -270,8 +267,8 @@ inline constexpr auto to_unique = transform_with([](auto vec) {
     vec.erase(std::unique(std::begin(vec), std::end(vec)), std::end(vec));
     return vec;
 });
-inline constexpr auto with_index = transform_with([](const auto& vec) {
-    return zip(index_range_of(vec), vec);
+inline constexpr auto to_unzipped = transform_with([](const auto& vec) {
+    return unzip(vec);
 });
 
 template <typename T> std::vector<T> int_range(const T lo, const T hi) {
@@ -294,6 +291,13 @@ std::vector<i32> index_range_of_i32(const std::vector<T>& vec) {
     return index_range_of<i32>(vec);
 }
 
+inline constexpr auto with_index = transform_with([](const auto& vec) {
+    return zip(index_range_of(vec), vec);
+});
+inline constexpr auto with_index_i32 = transform_with([](const auto& vec) {
+    return zip(index_range_of_i32(vec), vec);
+});
+
 template <typename T>
 auto pipe_vec(const std::vector<T>& vec, const auto&... funcs) {
     using Functional::operator|;
@@ -303,6 +307,10 @@ auto pipe_vec(const std::vector<T>& vec, const auto&... funcs) {
 template <typename T, usize Len>
 auto pipe_vec(const std::array<T, Len>& arr, const auto&... funcs) {
     return pipe_vec(std::vector(std::begin(arr), std::end(arr)), funcs...);
+}
+
+auto pipe_vec(const string& str, const auto&... funcs) {
+    return pipe_vec(std::vector(std::begin(str), std::end(str)), funcs...);
 }
 
 } // namespace CppCp
