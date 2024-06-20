@@ -29,8 +29,8 @@
 
 namespace CppCp {
 
-constexpr string COLOR_GREEN = "\u001b[32m";
-constexpr string COLOR_RESET = "\u001b[0m";
+constexpr char COLOR_GREEN[] = "\u001b[32m";
+constexpr char COLOR_RESET[] = "\u001b[0m";
 
 template <bool add_space = true, OStreamCompatibleAll... T>
 inline void write_debug([[maybe_unused]] const T... args) {
