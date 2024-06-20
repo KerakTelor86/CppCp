@@ -270,6 +270,9 @@ inline constexpr auto to_unique = transform_with([](auto vec) {
 inline constexpr auto to_unzipped = transform_with([](const auto& vec) {
     return unzip(vec);
 });
+inline constexpr auto stringify = transform_with([](const auto& vec) {
+    return string(begin(vec), end(vec));
+});
 
 template <typename T> std::vector<T> int_range(const T lo, const T hi) {
     debug_assert(lo <= hi, "cannot create an empty range");
