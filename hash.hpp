@@ -1,8 +1,8 @@
 #ifndef CPPCP_HASH
 #define CPPCP_HASH
 
-#include <compare>
 #if __cplusplus >= 202002L
+#include <compare>
 #include <concepts>
 #endif
 #include <functional>
