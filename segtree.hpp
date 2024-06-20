@@ -48,19 +48,21 @@ public:
     }
 
     void set(const i32 pos, const Val& value) {
-        debug_assert(0 <= pos && pos < ssize(*this), "pos is invalid");
+        debug_assert(0 <= pos && pos < std::ssize(*this), "pos is invalid");
         mutate<true>(pos, value, 0, 0, len - 1);
     }
 
     void update(const i32 pos, const Val& value) {
-        debug_assert(0 <= pos && pos < ssize(*this), "pos is invalid");
+        debug_assert(0 <= pos && pos < std::ssize(*this), "pos is invalid");
         mutate<false>(pos, value, 0, 0, len - 1);
     }
 
     Val query(const i32 left, const i32 right) const {
-        debug_assert(0 <= left && left < ssize(*this), "left pos is invalid");
         debug_assert(
-            0 <= right && right < ssize(*this), "right pos is invalid"
+            0 <= left && left < std::ssize(*this), "left pos is invalid"
+        );
+        debug_assert(
+            0 <= right && right < std::ssize(*this), "right pos is invalid"
         );
         debug_assert(left <= right, "left pos is > right pos");
         return query(left, right, 0, 0, len - 1);
@@ -145,19 +147,21 @@ public:
     }
 
     void set(const i32 pos, const Val& value) {
-        debug_assert(0 <= pos && pos < ssize(*this), "pos is invalid");
+        debug_assert(0 <= pos && pos < std::ssize(*this), "pos is invalid");
         mutate<true>(pos, value, 0, 0, Size - 1);
     }
 
     void update(const i32 pos, const Val& value) {
-        debug_assert(0 <= pos && pos < ssize(*this), "pos is invalid");
+        debug_assert(0 <= pos && pos < std::ssize(*this), "pos is invalid");
         mutate<false>(pos, value, 0, 0, Size - 1);
     }
 
     Val query(const i32 left, const i32 right) const {
-        debug_assert(0 <= left && left < ssize(*this), "left pos is invalid");
         debug_assert(
-            0 <= right && right < ssize(*this), "right pos is invalid"
+            0 <= left && left < std::ssize(*this), "left pos is invalid"
+        );
+        debug_assert(
+            0 <= right && right < std::ssize(*this), "right pos is invalid"
         );
         debug_assert(left <= right, "left pos is > right pos");
         return query(left, right, 0, 0, Size - 1);
