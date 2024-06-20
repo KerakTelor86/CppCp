@@ -12,7 +12,7 @@
 
 #define debug(...) __VA_ARGS__;
 #define with_name(x)                                                           \
-    [&x] {                                                                     \
+    [&] {                                                                      \
         std::stringstream ss;                                                  \
         ss << "[" << #x << " -> " << x << "]";                                 \
         return ss.str();                                                       \
