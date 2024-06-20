@@ -1,6 +1,6 @@
 # CppCp
 
-Header-only (read: copy-pasteable) C++20-ish competitive programming template. 
+Header-only (read: copy-pasteable) C++20-ish competitive programming library. 
 
 ## Example usage
 
