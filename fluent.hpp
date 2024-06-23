@@ -59,13 +59,14 @@ public:
     }
 
     template <usize Len> std::array<FinalType, Len> get() const {
+        debug_assert(
+            std::size(store) == Len,
+            "requested array length is not equal to structure length"
+        );
         std::array<FinalType, Len> ret;
-        usize idx = 0;
-        for (const auto& it : store) {
-            debug_assert(idx < Len, "given array size is not big enough");
+        for (usize idx = 0; const auto& it : store) {
             ret[idx++] = get_helper(it, funcs);
         }
-        debug_assert(idx == Len, "given array size is too big");
         return ret;
     }
 
@@ -95,7 +96,7 @@ public:
         requires Lambda<Func, StartType>
     auto map(const Func& func) const {
         return FluentCollection<Container, PendingMap..., Func>(
-            std::move(store), std::tuple_cat(funcs, std::make_tuple(func))
+            store, std::tuple_cat(funcs, std::make_tuple(func))
         );
     }
 
@@ -184,7 +185,7 @@ public:
 
         ret.push_back(got[0]);
         for (usize i = 1; i < std::size(got); ++i) {
-            ret.push_back(std::move(binary_op(ret.back(), got[i])));
+            ret.emplace_back(binary_op(ret.back(), got[i]));
         }
         return FluentCollection<decltype(ret)>(std::move(ret));
     }
