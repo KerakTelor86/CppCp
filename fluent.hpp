@@ -100,6 +100,14 @@ public:
         );
     }
 
+    template <typename Func>
+        requires LambdaWithRet<void, Func, StartType>
+    void for_each(const Func& func) const {
+        for (const auto& it : get()) {
+            func(it);
+        }
+    }
+
     auto flush() {
         const auto ret = get();
         return FluentCollection<decltype(ret)>(std::move(ret));
