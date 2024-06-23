@@ -2,6 +2,7 @@
 #define CPPCP_CONCEPTS
 
 #include <concepts>
+#include <type_traits>
 
 #include "ostream.hpp"
 #include "types.hpp"
@@ -35,8 +36,11 @@ concept IndexableContainer = requires(const T& container, usize idx) {
 
 template <typename V, typename T>
 concept IndexableContainerOf = requires(const V& container, usize idx) {
-    { container[idx] } -> std::same_as<T>;
+    requires std::same_as<
+        std::remove_const_t<std::remove_reference_t<decltype(container[idx])>>,
+        std::remove_const_t<T>>;
 };
+
 template <typename Func, typename... Args>
 concept Lambda = requires(const Func& func, const Args&... args) {
     { func(args...) };

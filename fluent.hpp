@@ -46,7 +46,7 @@ public:
     FluentCollection(Container&& source) : store(std::move(source)) {}
 
     auto get() const {
-        if constexpr (sizeof...(PendingMap) == 0) {
+        if constexpr (sizeof...(PendingMap) == 0 && IndexableContainerOf<Container, StartType>) {
             return store;
         } else {
             std::vector<FinalType> ret;
