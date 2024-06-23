@@ -18,14 +18,13 @@ namespace CppCp {
 
 namespace {
 
-template <typename T> auto get_helper(const T& val) {
-    return val;
-}
-
-template <typename T, typename Func, typename... Rest>
-auto get_helper(const T& val) {
-    using NextT = decltype(Func()(val));
-    return get_helper<NextT, Rest...>(Func()(val));
+template <usize Idx = 0, typename T, typename... Funcs>
+auto get_helper(const T& val, const std::tuple<Funcs...>& funcs) {
+    if constexpr (Idx >= sizeof...(Funcs)) {
+        return val;
+    } else {
+        return get_helper<Idx + 1>(std::get<Idx>(funcs)(val), funcs);
+    }
 }
 
 } // namespace
@@ -33,11 +32,15 @@ auto get_helper(const T& val) {
 template <typename Container, typename... PendingMap>
     requires IterableContainer<Container>
 class FluentCollection {
+private:
+    Container store;
+    std::tuple<PendingMap...> funcs;
+
 public:
     using StartType = std::remove_const_t<
         std::remove_reference_t<decltype(*begin(Container()))>>;
-    using FinalType = decltype(get_helper<StartType, PendingMap...>(StartType())
-    );
+
+    using FinalType = decltype(get_helper(StartType(), funcs));
 
     FluentCollection(const Container& source) : store(source) {}
     FluentCollection(Container&& source) : store(std::move(source)) {}
@@ -49,7 +52,7 @@ public:
             std::vector<FinalType> ret;
             ret.reserve(std::size(store));
             for (const auto& it : store) {
-                ret.push_back(get_helper<StartType, PendingMap...>(it));
+                ret.push_back(get_helper(it, funcs));
             }
             return ret;
         }
@@ -60,7 +63,7 @@ public:
         usize idx = 0;
         for (const auto& it : store) {
             debug_assert(idx < Len, "given array size is not big enough");
-            ret[idx++] = get_helper<StartType, PendingMap...>(it);
+            ret[idx++] = get_helper(it, funcs);
         }
         debug_assert(idx == Len, "given array size is too big");
         return ret;
@@ -81,15 +84,19 @@ public:
 
     template <typename Func>
         requires Lambda<Func, StartType>
-    auto map(const Func&) {
-        return FluentCollection<Container, PendingMap..., Func>(std::move(store)
+    auto map(const Func& func) {
+        return FluentCollection<Container, PendingMap..., Func>(
+            std::move(store),
+            std::tuple_cat(std::move(funcs), std::make_tuple(func))
         );
     }
 
     template <typename Func>
         requires Lambda<Func, StartType>
-    auto map(const Func&) const {
-        return FluentCollection<Container, PendingMap..., Func>(store);
+    auto map(const Func& func) const {
+        return FluentCollection<Container, PendingMap..., Func>(
+            std::move(store), std::tuple_cat(funcs, std::make_tuple(func))
+        );
     }
 
     auto flush() {
@@ -298,7 +305,7 @@ public:
     }
 
     auto reversed() const {
-        return transform([](std::vector<FinalType> vec) {
+        return transform([](auto vec) {
             std::reverse(std::begin(vec), std::end(vec));
             return vec;
         });
@@ -340,7 +347,19 @@ public:
     }
 
 private:
-    Container store;
+    FluentCollection(Container&& _store, std::tuple<PendingMap...>&& _funcs)
+        : store(std::move(_store)),
+          funcs(std::move(_funcs)) {}
+
+    FluentCollection(
+        const Container& _store, const std::tuple<PendingMap...>& _funcs
+    )
+        : store(_store),
+          funcs(_funcs) {}
+
+    template <typename A, typename... B>
+        requires IterableContainer<A>
+    friend class FluentCollection;
 };
 
 inline auto fluent(const auto& collection) {
