@@ -1,3 +1,5 @@
+// deprecated, use fluent.hpp instead!
+
 #ifndef CPPCP_FUNCTIONAL
 #define CPPCP_FUNCTIONAL
 

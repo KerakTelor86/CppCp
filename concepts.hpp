@@ -47,6 +47,21 @@ concept LambdaWithRet = requires(const Func& func, const Args&... args) {
     { func(args...) } -> std::same_as<Ret>;
 };
 
+template <typename Container>
+concept IterableContainer = requires(Container c) {
+    { c.begin() } -> std::forward_iterator;
+    { c.end() } -> std::forward_iterator;
+    { const_cast<const Container&>(c).begin() } -> std::forward_iterator;
+    { const_cast<const Container&>(c).end() } -> std::forward_iterator;
+};
+template <typename T>
+concept TupleLike = requires { std::tuple_size<T>::value; };
+
+template <typename T>
+concept Addable = requires(const T a, const T b) {
+    { a + b };
+};
+
 } // namespace CppCp
 
 #endif
