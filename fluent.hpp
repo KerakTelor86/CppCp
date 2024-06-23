@@ -92,6 +92,11 @@ public:
         return FluentCollection<Container, PendingMap..., Func>(store);
     }
 
+    auto flush() {
+        const auto ret = get();
+        return FluentCollection<decltype(ret)>(std::move(ret));
+    }
+
     template <typename Func>
         requires LambdaWithRet<bool, Func, FinalType>
     auto filter(const Func& filter_func) const {
@@ -134,6 +139,17 @@ public:
             map[key].push_back(it);
         }
         return FluentCollection<decltype(map)>(std::move(map));
+    }
+
+    template <typename Func>
+        requires LambdaWithRet<i32, Func, FinalType>
+    auto group_ranged(const i32 range, const Func& key_func) const {
+        std::vector<std::vector<FinalType>> ret(range);
+        for (const auto& it : get()) {
+            const auto key = key_func(it);
+            ret[key].push_back(it);
+        }
+        return FluentCollection<decltype(ret)>(std::move(ret));
     }
 
     template <typename Func>
@@ -298,7 +314,22 @@ public:
         return count;
     }
 
-    auto sum() const
+    FinalType max() const
+        requires std::totally_ordered<FinalType>
+    {
+        const auto got = get();
+        return *std::max_element(std::begin(got), std::end(got));
+    }
+
+    FinalType min() const
+        requires std::totally_ordered<FinalType>
+    {
+        const auto got = get();
+        return *std::min_element(std::begin(got), std::end(got));
+    }
+
+    template <typename T = FinalType>
+    T sum() const
         requires Addable<FinalType>
     {
         return reduce(std::plus<>());
