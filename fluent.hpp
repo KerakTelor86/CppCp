@@ -45,18 +45,30 @@ public:
     FluentCollection(const Container& source) : store(source) {}
     FluentCollection(Container&& source) : store(std::move(source)) {}
 
+    auto get() {
+        if constexpr (sizeof...(PendingMap) == 0 && IndexableContainerOf<Container, StartType>) {
+            return std::move(store);
+        } else {
+            return get_vector();
+        }
+    }
+
     auto get() const {
         if constexpr (sizeof...(PendingMap) == 0 && IndexableContainerOf<Container, StartType>) {
             return store;
         } else {
-            std::vector<FinalType> ret;
-            ret.reserve(std::size(store));
-            for (const auto& it : store) {
-                ret.push_back(get_helper(it, funcs));
-            }
-            return ret;
+            return get_vector();
         }
     }
+
+    auto get_vector() const {
+        std::vector<FinalType> ret;
+        ret.reserve(std::size(store));
+        for (const auto& it : store) {
+            ret.push_back(get_helper(it, funcs));
+        }
+        return std::move(ret);
+    };
 
     template <usize Len> std::array<FinalType, Len> get() const {
         debug_assert(
