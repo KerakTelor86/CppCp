@@ -96,7 +96,7 @@ public:
     }
 
     template <typename Func>
-        requires Lambda<Func, StartType>
+        requires Lambda<Func, FinalType>
     auto map(const Func& func) {
         return FluentCollection<Container, PendingMap..., Func>(
             std::move(store),
@@ -105,7 +105,7 @@ public:
     }
 
     template <typename Func>
-        requires Lambda<Func, StartType>
+        requires Lambda<Func, FinalType>
     auto map(const Func& func) const {
         return FluentCollection<Container, PendingMap..., Func>(
             store, std::tuple_cat(funcs, std::make_tuple(func))
@@ -113,7 +113,7 @@ public:
     }
 
     template <typename Func>
-        requires LambdaWithRet<void, Func, StartType>
+        requires LambdaWithRet<void, Func, FinalType>
     void for_each(const Func& func) const {
         for (const auto& it : get()) {
             func(it);
@@ -329,6 +329,14 @@ public:
         return transform([](auto vec) {
             std::reverse(std::begin(vec), std::end(vec));
             return vec;
+        });
+    }
+
+    template <typename IdxT = usize> auto with_index() const {
+        return transform([](auto vec) {
+            std::vector<IdxT> index(std::size(vec));
+            std::iota(std::begin(index), std::end(index), 0);
+            return zip(std::move(vec), std::move(index));
         });
     }
 
