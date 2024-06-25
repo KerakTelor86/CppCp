@@ -6,6 +6,7 @@
 #include <iterator>
 #include <map>
 #include <numeric>
+#include <optional>
 #include <tuple>
 
 #include "concepts.hpp"
@@ -18,12 +19,26 @@ namespace CppCp {
 
 namespace {
 
+template <typename Func, typename T>
+concept Filter = requires(const Func& func, const T& val) {
+    { func(val) } -> std::same_as<std::optional<T>>;
+};
+
 template <usize Idx = 0, typename T, typename... Funcs>
 auto get_helper(const T& val, const std::tuple<Funcs...>& funcs) {
     if constexpr (Idx >= sizeof...(Funcs)) {
-        return val;
+        return std::optional(val);
     } else {
-        return get_helper<Idx + 1>(std::get<Idx>(funcs)(val), funcs);
+        const auto& func = std::get<Idx>(funcs);
+        if constexpr (Filter<decltype(func), T>) {
+            using NextT = decltype(get_helper<Idx + 1>(val, funcs));
+            if (!func(val)) {
+                return NextT();
+            } else {
+                return get_helper<Idx + 1>(val, funcs);
+            }
+        }
+        return get_helper<Idx + 1>(func(val), funcs);
     }
 }
 
@@ -33,29 +48,23 @@ template <typename Container, typename... PendingMap>
     requires IterableContainer<Container>
 class FluentCollection {
 private:
-    Container store;
+    std::shared_ptr<Container> store;
     std::tuple<PendingMap...> funcs;
 
 public:
     using StartType = std::remove_const_t<
         std::remove_reference_t<decltype(*begin(Container()))>>;
 
-    using FinalType = decltype(get_helper(StartType(), funcs));
+    using FinalType = decltype(get_helper(StartType(), funcs))::value_type;
 
-    FluentCollection(const Container& source) : store(source) {}
-    FluentCollection(Container&& source) : store(std::move(source)) {}
-
-    auto get() {
-        if constexpr (sizeof...(PendingMap) == 0 && IndexableContainerOf<Container, StartType>) {
-            return std::move(store);
-        } else {
-            return get_vector();
-        }
-    }
+    FluentCollection(const Container& source)
+        : store(std::make_shared<Container>(source)) {}
+    FluentCollection(Container&& source)
+        : store(std::make_shared<Container>(std::move(source))) {}
 
     auto get() const {
         if constexpr (sizeof...(PendingMap) == 0 && IndexableContainerOf<Container, StartType>) {
-            return store;
+            return *store;
         } else {
             return get_vector();
         }
@@ -63,20 +72,31 @@ public:
 
     auto get_vector() const {
         std::vector<FinalType> ret;
-        ret.reserve(std::size(store));
-        for (const auto& it : store) {
-            ret.push_back(get_helper(it, funcs));
+        ret.reserve(std::size(*store));
+        for (const auto& it : *store) {
+            auto eval = get_helper(it, funcs);
+            if (eval) {
+                ret.push_back(std::move(eval.value()));
+            }
         }
-        return std::move(ret);
+        return ret;
     };
+
+    auto get_first() {
+        return get()[0];
+    }
+
+    auto get_first() const {
+        return get()[0];
+    }
 
     template <usize Len> std::array<FinalType, Len> get() const {
         debug_assert(
-            std::size(store) == Len,
+            std::size(*store) == Len,
             "requested array length is not equal to structure length"
         );
         std::array<FinalType, Len> ret;
-        for (usize idx = 0; const auto& it : store) {
+        for (usize idx = 0; const auto& it : *store) {
             ret[idx++] = get_helper(it, funcs);
         }
         return ret;
@@ -93,15 +113,6 @@ public:
         requires TupleLike<FinalType>
     {
         return unzip(get());
-    }
-
-    template <typename Func>
-        requires Lambda<Func, FinalType>
-    auto map(const Func& func) {
-        return FluentCollection<Container, PendingMap..., Func>(
-            std::move(store),
-            std::tuple_cat(std::move(funcs), std::make_tuple(func))
-        );
     }
 
     template <typename Func>
@@ -128,13 +139,22 @@ public:
     template <typename Func>
         requires LambdaWithRet<bool, Func, FinalType>
     auto filter(const Func& filter_func) const {
-        std::vector<FinalType> ret;
-        for (const auto& it : get()) {
-            if (filter_func(it)) {
-                ret.push_back(it);
+        return map([&](const FinalType& val) -> std::optional<FinalType> {
+            if (filter_func(val)) {
+                return val;
             }
-        }
-        return FluentCollection<decltype(ret)>(std::move(ret));
+            return std::nullopt;
+        });
+    }
+
+    template <typename T = usize, typename Func>
+        requires LambdaWithRet<bool, Func, FinalType>
+    auto index_of(const Func& predicate_func) const {
+        return with_index<T>()
+            .filter([&](const auto& row) {
+                return predicate_func(std::get<0>(row));
+            })
+            .map([](const auto& row) { return std::get<1>(row); });
     }
 
     template <typename Func>
@@ -175,6 +195,7 @@ public:
         std::vector<std::vector<FinalType>> ret(range);
         for (const auto& it : get()) {
             const auto key = key_func(it);
+            debug_assert(0 <= key && key < range, "key must be in [0, range)");
             ret[key].push_back(it);
         }
         return FluentCollection<decltype(ret)>(std::move(ret));
@@ -372,16 +393,13 @@ public:
     }
 
     usize size() const {
-        return std::size(store);
+        return std::size(*store);
     }
 
 private:
-    FluentCollection(Container&& _store, std::tuple<PendingMap...>&& _funcs)
-        : store(std::move(_store)),
-          funcs(std::move(_funcs)) {}
-
     FluentCollection(
-        const Container& _store, const std::tuple<PendingMap...>& _funcs
+        const std::shared_ptr<Container>& _store,
+        const std::tuple<PendingMap...>& _funcs
     )
         : store(_store),
           funcs(_funcs) {}
