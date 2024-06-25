@@ -36,6 +36,6 @@
     }
 
 #define _ CONCAT(_ignored_variable_, __COUNTER__)
-#define __ [[maybe_unused]] auto&& _
+#define __ [[maybe_unused]] const auto& _
 
 #endif
