@@ -1,18 +1,30 @@
 #ifndef CPPCP_SHORTCUTS
 
-#define imut const auto
 #define mut auto
+#define imut const auto
+#define muts(...) mut[__VA_ARGS__]
+#define imuts(...) imut[__VA_ARGS__]
 
-#define lambda(ret) [&] { return ret; };
-#define lambda1(ret) [&]([[maybe_unused]] mut&& v1) { return ret; }
-#define lambda2(ret) [&]([[maybe_unused]] mut&& v1, mut&& v2) { return ret; }
-#define lambda3(ret) \
-    [&]([[maybe_unused]] mut&& v1, mut&& v2, mut&& v3) { return ret; }
-#define lambda4(ret) \
-    [&]([[maybe_unused]] mut&& v1, mut&& v2, mut&& v3, mut&& v4) { return ret; }
-#define lambda5(ret)                                                         \
-    [&]([[maybe_unused]] mut&& v1, mut&& v2, mut&& v3, mut&& v4, mut&& v5) { \
-        return ret;                                                          \
+#define typedlambda(ret, type) [&]() -> type { return ret; }
+#define typedlambda1(ret, type) \
+    [&]([[maybe_unused]] mut&& v1) -> type { return ret; }
+#define typedlambda2(ret, type) \
+    [&]([[maybe_unused]] mut&& v1, mut&& v2) -> type { return ret; }
+#define typedlambda3(ret, type) \
+    [&]([[maybe_unused]] mut&& v1, mut&& v2, mut&& v3) -> type { return ret; }
+#define typedlambda4(ret, type)                                            \
+    [&]([[maybe_unused]] mut&& v1, mut&& v2, mut&& v3, mut&& v4) -> type { \
+        return ret;                                                        \
     }
+#define typedlambda5(ret, type)                                           \
+    [&]([[maybe_unused]] mut&& v1, mut&& v2, mut&& v3, mut&& v4, mut&& v5 \
+    ) -> type { return ret; }
+
+#define lambda(ret) typedlambda(ret, auto)
+#define lambda1(ret) typedlambda1(ret, auto)
+#define lambda2(ret) typedlambda2(ret, auto)
+#define lambda3(ret) typedlambda3(ret, auto)
+#define lambda4(ret) typedlambda4(ret, auto)
+#define lambda5(ret) typedlambda5(ret, auto)
 
 #endif
