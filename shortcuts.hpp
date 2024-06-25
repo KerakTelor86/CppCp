@@ -27,4 +27,9 @@
 #define lambda4(ret) typedlambda4(ret, auto)
 #define lambda5(ret) typedlambda5(ret, auto)
 
+#define CONCAT_INNER(a, b) a##b
+#define CONCAT(a, b) CONCAT_INNER(a, b)
+
+#define _ CONCAT(_ignored_variable_, __COUNTER__)
+
 #endif
