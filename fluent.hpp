@@ -20,25 +20,43 @@ namespace CppCp {
 namespace {
 
 template <typename Func, typename T>
-concept Filter = requires(const Func& func, const T& val) {
-    { func(val) } -> std::same_as<std::optional<T>>;
+inline constexpr auto call(const Func& func, T&& arg) {
+    if constexpr (Lambda<Func, T>) {
+        return func(std::forward<T>(arg));
+    } else {
+        return std::apply(func, std::forward<T>(arg));
+    }
+}
+
+template <typename Func, typename T>
+concept AppliableLambda = requires(const Func& func, T&& val) {
+    { call(func, std::forward<T>(val)) };
 };
 
+template <typename Ret, typename Func, typename T>
+concept AppliableLambdaWithRet = requires(const Func& func, T&& val) {
+    { call(func, std::forward<T>(val)) } -> std::same_as<Ret>;
+};
+
+template <typename Func, typename T>
+concept Filter = AppliableLambdaWithRet<std::optional<T>, Func, T>;
+
 template <usize Idx = 0, typename T, typename... Funcs>
-auto get_helper(const T& val, const std::tuple<Funcs...>& funcs) {
+inline constexpr auto get_helper(T&& val, const std::tuple<Funcs...>& funcs) {
     if constexpr (Idx >= sizeof...(Funcs)) {
-        return std::optional(val);
+        return std::optional(std::forward<T>(val));
     } else {
         const auto& func = std::get<Idx>(funcs);
         if constexpr (Filter<decltype(func), T>) {
             using NextT = decltype(get_helper<Idx + 1>(val, funcs));
-            if (!func(val)) {
+            if (!call(func, std::forward<T>(val))) {
                 return NextT();
             } else {
-                return get_helper<Idx + 1>(val, funcs);
+                return get_helper<Idx + 1>(std::forward<T>(val), funcs);
             }
+        } else {
+            return get_helper<Idx + 1>(call(func, std::forward<T>(val)), funcs);
         }
-        return get_helper<Idx + 1>(func(val), funcs);
     }
 }
 
@@ -86,7 +104,7 @@ public:
         return *std::begin(get());
     }
 
-    template <usize Len> std::array<FinalType, Len> get() const {
+    template <usize Len> std::array<FinalType, Len> get_array() const {
         debug_assert(
             std::size(*store) == Len,
             "requested array length is not equal to structure length"
@@ -112,7 +130,7 @@ public:
     }
 
     template <typename Func>
-        requires Lambda<Func, FinalType>
+        requires AppliableLambda<Func, FinalType>
     auto map(const Func& func) const {
         return FluentCollection<Container, PendingMap..., Func>(
             store, std::tuple_cat(funcs, std::make_tuple(func))
@@ -120,7 +138,7 @@ public:
     }
 
     template <typename Func>
-        requires LambdaWithRet<void, Func, FinalType>
+        requires AppliableLambdaWithRet<void, Func, FinalType>
     void for_each(const Func& func) const {
         for (const auto& it : get()) {
             func(it);
@@ -133,7 +151,7 @@ public:
     }
 
     template <typename Func>
-        requires LambdaWithRet<bool, Func, FinalType>
+        requires AppliableLambdaWithRet<bool, Func, FinalType>
     auto filter(const Func& filter_func) const {
         return map([&](const FinalType& val) -> std::optional<FinalType> {
             if (filter_func(val)) {
@@ -144,7 +162,7 @@ public:
     }
 
     template <typename T = usize, typename Func>
-        requires LambdaWithRet<bool, Func, FinalType>
+        requires AppliableLambdaWithRet<bool, Func, FinalType>
     auto index_of(const Func& predicate_func) const {
         return with_index<T>()
             .filter([&](const auto& row) {
@@ -154,7 +172,7 @@ public:
     }
 
     template <typename Func>
-        requires LambdaWithRet<bool, Func, FinalType>
+        requires AppliableLambdaWithRet<bool, Func, FinalType>
     auto partition(const Func& filter_func) const {
         std::array<std::vector<FinalType>, 2> ret;
         for (const auto& it : get()) {
@@ -168,7 +186,7 @@ public:
     }
 
     template <typename Func>
-        requires Lambda<Func, FinalType>
+        requires AppliableLambda<Func, FinalType>
     auto group(const Func& key_func) const {
         using Key = decltype(key_func(FinalType()));
         auto map = [] {
@@ -186,7 +204,7 @@ public:
     }
 
     template <typename Func>
-        requires LambdaWithRet<i32, Func, FinalType>
+        requires AppliableLambdaWithRet<i32, Func, FinalType>
     auto group_ranged(const i32 range, const Func& key_func) const {
         std::vector<std::vector<FinalType>> ret(range);
         for (const auto& it : get()) {
@@ -253,7 +271,7 @@ public:
     }
 
     template <typename Func>
-        requires Lambda<Func, std::vector<FinalType>>
+        requires AppliableLambda<Func, std::vector<FinalType>>
     auto transform(const Func& transform_func) const {
         auto ret = transform_func(get());
         return FluentCollection<decltype(ret)>(std::move(ret));
@@ -280,7 +298,7 @@ public:
 
     template <typename Func>
     auto sorted_by(const Func& key_func) const
-        requires Lambda<Func, FinalType>
+        requires AppliableLambda<Func, FinalType>
                  && std::totally_ordered<decltype(key_func(FinalType()))>
     {
         using Key = decltype(key_func(FinalType()));
@@ -312,7 +330,7 @@ public:
 
     template <typename Func>
     auto distinct_by(const Func& key_func) const
-        requires Lambda<Func, FinalType>
+        requires AppliableLambda<Func, FinalType>
                  && std::totally_ordered<decltype(key_func(FinalType()))>
     {
         using Key = decltype(key_func(FinalType()));
@@ -358,7 +376,7 @@ public:
     }
 
     template <typename T = i64, typename Func>
-        requires LambdaWithRet<bool, Func, FinalType>
+        requires AppliableLambdaWithRet<bool, Func, FinalType>
     auto count(const Func& predicate_func) const {
         T count = 0;
         for (const auto& it : get()) {
