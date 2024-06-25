@@ -35,8 +35,7 @@ int main() {
     // ...
     const auto q = read<i32>();
     const auto ans = fluent(read<i32, i32>(q))
-                         .map([&](const std::tuple<i32, i32>& query) {
-                             const auto [l, r] = query;
+                         .map([&](const i32 l, const i32 r) {
                              return hash_fwd.query(l, r)
                                     == hash_rev.query(n - r - 1, n - l - 1);
                          })
