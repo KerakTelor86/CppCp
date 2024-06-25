@@ -24,7 +24,7 @@ UsingHashDouble(Hash, ModIntMersenne, MAX_N);
 int main() {
     // ...
     const auto s = read<std::string>();
-    const auto n = ssize(s);
+    const auto n = std::ssize(s);
     // ...
     const auto t = fluent(s).reversed().get();
     const SegTree<Hash> hash_fwd(s), hash_rev(t);

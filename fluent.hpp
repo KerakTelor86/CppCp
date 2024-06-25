@@ -82,12 +82,8 @@ public:
         return ret;
     };
 
-    auto get_first() {
-        return get()[0];
-    }
-
     auto get_first() const {
-        return get()[0];
+        return *std::begin(get());
     }
 
     template <usize Len> std::array<FinalType, Len> get() const {
@@ -390,10 +386,6 @@ public:
         requires Addable<FinalType>
     {
         return reduce(std::plus<>());
-    }
-
-    usize size() const {
-        return std::size(*store);
     }
 
 private:
