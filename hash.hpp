@@ -99,20 +99,20 @@ private:
 
 #ifdef ENABLE_HASH_USING_MACRO
 
-#define UsingHashHelper(ModInt, MaxN, Index)                                   \
-    const auto HASH_MUL##Index = rand_int(MUL_MIN, MUL_MAX);                   \
-    const auto HASH_MUL_POW##Index = precompute_mul_pows<ModInt, MaxN>(        \
-        HASH_MUL##Index                                                        \
-    );                                                                         \
-    ModInt hash_pow_mul##Index(const i64 exp) {                                \
-        debug_assert(                                                          \
-            exp < ssize(HASH_MUL_POW##Index), "tried to get exp > MaxN"        \
-        );                                                                     \
-        return HASH_MUL_POW##Index[exp];                                       \
+#define UsingHashHelper(ModInt, MaxN, Index)                            \
+    const auto HASH_MUL##Index = rand_int(MUL_MIN, MUL_MAX);            \
+    const auto HASH_MUL_POW##Index = precompute_mul_pows<ModInt, MaxN>( \
+        HASH_MUL##Index                                                 \
+    );                                                                  \
+    ModInt hash_pow_mul##Index(const i64 exp) {                         \
+        debug_assert(                                                   \
+            exp < ssize(HASH_MUL_POW##Index), "tried to get exp > MaxN" \
+        );                                                              \
+        return HASH_MUL_POW##Index[exp];                                \
     }
 
-#define UsingHashSingle(TargetTypeName, ModInt, MaxN)                          \
-    UsingHashHelper(ModInt, MaxN, 0);                                          \
+#define UsingHashSingle(TargetTypeName, ModInt, MaxN) \
+    UsingHashHelper(ModInt, MaxN, 0);                 \
     using TargetTypeName = RollingHash<ModInt, hash_pow_mul0>;
 
 #if defined(ENABLE_HASH_DEBUG_MUL) && defined(LOCAL)
@@ -123,31 +123,31 @@ private:
 
 #else
 
-#define UsingHashDouble(TargetTypeName, ModInt, MaxN)                          \
-    UsingHashHelper(ModInt, MaxN, 0);                                          \
-    UsingHashHelper(ModInt, MaxN, 1);                                          \
+#define UsingHashDouble(TargetTypeName, ModInt, MaxN) \
+    UsingHashHelper(ModInt, MaxN, 0);                 \
+    UsingHashHelper(ModInt, MaxN, 1);                 \
     using TargetTypeName = RollingHash<ModInt, hash_pow_mul0, hash_pow_mul1>;
 
-#define UsingHashTriple(TargetTypeName, ModInt, MaxN)                          \
-    UsingHashHelper(ModInt, MaxN, 0);                                          \
-    UsingHashHelper(ModInt, MaxN, 1);                                          \
-    UsingHashHelper(ModInt, MaxN, 2);                                          \
-    using TargetTypeName = RollingHash<                                        \
-        ModInt,                                                                \
-        hash_pow_mul0,                                                         \
-        hash_pow_mul1,                                                         \
+#define UsingHashTriple(TargetTypeName, ModInt, MaxN) \
+    UsingHashHelper(ModInt, MaxN, 0);                 \
+    UsingHashHelper(ModInt, MaxN, 1);                 \
+    UsingHashHelper(ModInt, MaxN, 2);                 \
+    using TargetTypeName = RollingHash<               \
+        ModInt,                                       \
+        hash_pow_mul0,                                \
+        hash_pow_mul1,                                \
         hash_pow_mul2>;
 
-#define UsingHashQuadruple(TargetTypeName, ModInt, MaxN)                       \
-    UsingHashHelper(ModInt, MaxN, 0);                                          \
-    UsingHashHelper(ModInt, MaxN, 1);                                          \
-    UsingHashHelper(ModInt, MaxN, 2);                                          \
-    UsingHashHelper(ModInt, MaxN, 3);                                          \
-    using TargetTypeName = RollingHash<                                        \
-        ModInt,                                                                \
-        hash_pow_mul0,                                                         \
-        hash_pow_mul1,                                                         \
-        hash_pow_mul2,                                                         \
+#define UsingHashQuadruple(TargetTypeName, ModInt, MaxN) \
+    UsingHashHelper(ModInt, MaxN, 0);                    \
+    UsingHashHelper(ModInt, MaxN, 1);                    \
+    UsingHashHelper(ModInt, MaxN, 2);                    \
+    UsingHashHelper(ModInt, MaxN, 3);                    \
+    using TargetTypeName = RollingHash<                  \
+        ModInt,                                          \
+        hash_pow_mul0,                                   \
+        hash_pow_mul1,                                   \
+        hash_pow_mul2,                                   \
         hash_pow_mul3>;
 
 #endif
