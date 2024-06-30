@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#include "io.hpp"
 #include "types.hpp"
 #include "unordered.hpp"
 
@@ -85,16 +86,12 @@ public:
         return rep == other.rep;
     }
 
-    friend std::istream& operator>>(
-        std::istream& stream, ModInt& value
-    ) {
+    friend std::istream& operator>>(std::istream& stream, ModInt& value) {
         stream >> value.rep;
         return stream;
     }
 
-    friend std::ostream& operator<<(
-        std::ostream& stream, const ModInt& value
-    ) {
+    friend std::ostream& operator<<(std::ostream& stream, const ModInt& value) {
         stream << value.rep;
         return stream;
     }
@@ -109,8 +106,16 @@ private:
 
 #ifdef ENABLE_MODINT_INV_CACHE
 template <typename T, typename U, T MOD>
-UnorderedMap<T, T>
-    ModInt<T, U, MOD>::inv_cache = UnorderedMap<T, T>();
+UnorderedMap<T, T> ModInt<T, U, MOD>::inv_cache = UnorderedMap<T, T>();
+
+#ifdef LOCAL
+struct _MIntCacheInfo {
+    _MIntCacheInfo() {
+        write_line_debug("modint.hpp: enabled inv() cache");
+    }
+} _mint_cache_info;
+#endif
+
 #endif
 } // namespace
 
