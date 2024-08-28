@@ -81,7 +81,8 @@ public:
         : store(std::make_shared<Container>(std::move(source))) {}
 
     auto get() const {
-        if constexpr (sizeof...(PendingMap) == 0 && IndexableContainerOf<Container, StartType>) {
+        if constexpr (sizeof...(PendingMap) == 0
+                      && IndexableContainerOf<Container, StartType>) {
             return *store;
         } else {
             return get_vector();
@@ -111,7 +112,10 @@ public:
         );
         std::array<FinalType, Len> ret;
         for (usize idx = 0; const auto& it : *store) {
-            ret[idx++] = get_helper(it, funcs);
+            auto eval = get_helper(it, funcs);
+            if (eval) {
+                ret[idx++] = std::move(eval.value());
+            }
         }
         return ret;
     }
